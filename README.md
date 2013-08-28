@@ -1,7 +1,7 @@
 poi-webservice
 ==============
 
-an experimental webservice to provide POIs according to the format specification of [[http://github.com/stlemme/poi]]
+an experimental webservice to provide POIs according to the format specification of http://github.com/stlemme/poi
 
 
 Usage
