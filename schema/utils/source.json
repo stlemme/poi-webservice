@@ -1,0 +1,25 @@
+{
+	"title": "POI source",
+	"type": "object",
+	"properties": {
+		"name": {
+			"description": "Source of the component information",
+			"type": "string"
+		},
+		"website": {
+			"description": "Link to a related webpage",
+			"type": "string",
+			"format": "uri"
+		},
+		"id": {
+			"description": "UUID of the source profile",
+			"type": "string"
+		},
+		"license": {
+			"description": "Link to applied license",
+			"type": "string",
+			"format": "uri"
+		}
+	},
+	"additionalProperties": false
+}
