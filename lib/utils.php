@@ -21,6 +21,15 @@ class Utils
 		
 		return null;
 	}
+
+	private static $uri_pattern = "/([a-z][a-z0-9\+\-]*):\/\/(.+)/";
+
+	public static function validate_uri($uri) {
+                if (preg_match(self::$uri_pattern, $uri) == 1)
+                        return $uri;
+
+                return null;
+	}
 	
 	public static function json_decode($json, $assoc_array = true, $debug = false)
 	{

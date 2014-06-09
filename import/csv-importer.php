@@ -6,9 +6,9 @@ class CsvImporter
 	private $header; 
 	private $delimiter; 
 	
-	public function __construct($file_name, $parse_header=false, $header=null, $delimiter="\t") 
+	public function __construct($file, $parse_header=false, $header=null, $delimiter="\t") 
 	{ 
-		$this->fp = fopen($file_name, "r"); 
+		$this->fp = $file; // fopen($file_name, "r"); 
 		$this->delimiter = $delimiter; 
 
 		if ($parse_header) { 
@@ -22,8 +22,8 @@ class CsvImporter
 
 	public function __destruct() 
 	{
-		if ($this->fp) 
-			fclose($this->fp); 
+		// if ($this->fp) 
+		//	fclose($this->fp); 
 	}
 
 	public function get()

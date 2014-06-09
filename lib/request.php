@@ -29,6 +29,7 @@ class Request
 		switch ($target) {
 			case "string": return $value;
 			case "uuid":   return Utils::validate_guidv4($value);
+			case "uri":    return Utils::validate_uri($value);
 			case "float":  return is_numeric($value) ? floatval($value) : null;
 			case "int":    return is_numeric($value) ? intval($value) : null;
 			case "enum":   return in_array($value, $prop['values']) ? $value : null;
