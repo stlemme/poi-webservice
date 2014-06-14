@@ -13,8 +13,12 @@ class SpatialMongoResultIterator implements Iterator
 		if ($this->mongoIterator == null)
 			return;
 		
-		$this->mongoIterator->rewind();
-		$this->i = 0;
+		try {
+			$this->mongoIterator->rewind();
+			$this->i = 0;
+		} catch (MongoCursorException $e) {
+			$this->mongoIterator = null;
+		}
 	}
 	
 	public function current() {
