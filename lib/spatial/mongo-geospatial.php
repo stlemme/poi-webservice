@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__ . '/../spatial-index.php');
+require_once(__DIR__ . '/../utils.php');
 require_once(__DIR__ . '/spatial-mongo-result-iterator.php');
 
 
@@ -18,13 +19,15 @@ class MongoGeospatial extends SpatialIndex
 	public function set($poi_uuid, &$poi_data) {
 		// ensure fw_core.location.wgs84 longitude/latitude order for geospatial index of mongodb
 		// TODO: check with json schema existence of components
-		if (!isset($poi_data['fw_core']))
+		$loc = Utils::jsonPath($poi_data, 'fw_core.location.wgs84');
+
+		if ($loc == null)
 			return;
 		
-		$loc = $poi_data['fw_core']['location'];
+		// TODO: use somekind of Utils::setJsonPath($poi_data, 'fw_core.location.wgs84', array( ... ))
 		$poi_data['fw_core']['location']['wgs84'] = array(
-			'longitude' => $loc['wgs84']['longitude'],
-			'latitude' => $loc['wgs84']['latitude']
+			'longitude' => $loc['longitude'],
+			'latitude' => $loc['latitude']
 		);
 	}
 	

@@ -2,6 +2,7 @@
 
 require_once(__DIR__ . '/lib/poi-data-provider.php');
 require_once(__DIR__ . '/lib/response.php');
+require_once(__DIR__ . '/lib/selector/id-selector.php');
 
 
 $dp = POIDataProvider::getInstance();

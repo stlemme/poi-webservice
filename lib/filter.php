@@ -1,16 +1,9 @@
 <?php
 
-class Filter
+interface Filter
 {
-	public function requiredComponents() {
-		return array();
-	}
-	
-	public function match($poi_data) {
-		return false;
-	}
-	
+	public function requiredComponents();
+	public function match($poi_data);
 }
-
 
 ?>

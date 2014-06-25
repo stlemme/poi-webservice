@@ -1,6 +1,3 @@
 [submodule "jsv4-php"]
 	path = jsv4-php
 	url = https://github.com/stefanlemme/jsv4-php.git
-[submodule "schema"]
-	path = schema
-	url = https://github.com/stefanlemme/poi.git

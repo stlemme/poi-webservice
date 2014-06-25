@@ -1,0 +1,25 @@
+{
+	"db": {
+		"name": "poi_db4"
+	},
+	
+	"schema": {
+		"path": "schema",
+		"baseurl": "http://example.com/poi-v1/"
+	},
+		
+	"spatial_index": "mongo-geospatial",
+
+	"query_defaults": {
+		"max_results": 10000,
+		"radius": 300
+	},
+		
+	"remote": {
+		"url": "",
+		"components": {
+			"query": ["fw_core"],
+			"store": ["fw_core"]
+		}	
+	}
+}

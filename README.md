@@ -1,7 +1,7 @@
 poi-webservice
 ==============
 
-an experimental webservice to provide POIs according to the format specification of http://github.com/stlemme/poi
+an experimental webservice to provide POIs according to the format specification of the FI-WARE POI Data Provider
 
 
 Usage
@@ -9,30 +9,42 @@ Usage
 
 * rename config.php.sample to config.php
 * adjust configuration
-* adjust .htaccess
-* Service Point: http://my-poi-provider.url/api/poi/
+* adjust .htaccess if necessary
+* check http://my-poi-provider.url/api/poi/status
 
 
 API
 ==============
-id  --   http://my-poi-provider.url/api/poi/?id=5540b5d2-0909-4b0a-8a69-5ec3a64dc3d7
-  - returns a result set with one specific entry (Hotel Continental Saarbrücken)
 
-tag  --   http://my-poi-provider.url/api/poi/?tag=geonames.org_feature_code_HTL
-  - returns a result set with 25 (default) of about 3400 hotels
+/get_pois
 
-limit  --  http://my-poi-provider.url/api/poi/?tag=geonames.org_feature_code_HTL&limit=100
-  - returns a result set with 100 of about 3400 hotels
+* poi_id - comma separated list of poi uuids
 
-bbox  --   http://my-poi-provider.url/api/poi/?bbox=6.9831160640714,49.232331624725,7.0116118526456,49.239701237993
-  - returns a result set with 25 (default) pois within the bounding box
+/bbox_search
 
-position  --  http://my-poi-provider.url/api/poi/?id=5540b5d2-0909-4b0a-8a69-5ec3a64dc3d7&lat=49.257187&long=7.042128
-  - returns a result set with one specific entry (Hotel Continental Saarbrücken)
-  - the entry contains meta data about the distance from the given position
+* east, west - bounds of longitude in degrees
+* south, north - bounds of latitude in degrees
+ 
+/radial_search
 
-dist  --  http://my-poi-provider.url/api/poi/?tag=geonames.org_feature_code_HTL&lat=49.257187&long=7.042128&dist=6000
-  - returns a result set with 7 hotels near the DFKI
-  - each entry contains meta data about the distance from the given position
-  - each entry is less than 6000 meters away from the given position
+* lon - longitude of center in degrees
+* lat - latitude of center in degrees
+* [optional] radius - distance around center in meters
+
+Common Parameters
+==============
+
+* component - comma separated list of valid component names (see /get_components)
+* category - comma separated list of categories
+* max_results  - maximum result set size
+
+Extensions
+==============
+
+* jsoncallback - name of the callback function, switches to jsonp instead of json
+
+Example Queries
+==============
+
+* http://130.206.80.175/api/poi/bbox_search?max_results=100&component=fw_core,fw_xml3d&category=HTL&north=52.524759847218&south=52.494252206072&west=13.33817346763&east=13.452242452616
 

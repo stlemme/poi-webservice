@@ -13,7 +13,8 @@ class Utils
 	
 	private static $guidv4_pattern = "/([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{12})/";
 
-	public static function validate_guidv4($id) {
+	public static function validate_guidv4($id)
+	{
 		$id = strtolower($id);
 		
 		if (preg_match(self::$guidv4_pattern, $id) == 1)
@@ -24,11 +25,12 @@ class Utils
 
 	private static $uri_pattern = "/([a-z][a-z0-9\+\-]*):\/\/(.+)/";
 
-	public static function validate_uri($uri) {
-                if (preg_match(self::$uri_pattern, $uri) == 1)
-                        return $uri;
+	public static function validate_uri($uri)
+	{
+		if (preg_match(self::$uri_pattern, $uri) == 1)
+				return $uri;
 
-                return null;
+		return null;
 	}
 	
 	public static function json_decode($json, $assoc_array = true, $debug = false)
@@ -61,6 +63,20 @@ class Utils
 		$lat = $wgs84['latitude'];
 		
 		return true;
+	}
+	
+	public static function jsonPath($poi_data, $path)
+	{
+		$current = $poi_data;
+		$path_parts = explode('.', $path);
+		while(($elem = array_shift($path_parts)) != null)
+		{
+			if (!array_key_exists($elem, $current))
+				return null;
+				
+			$current = $current[$elem];
+		}
+		return $current;
 	}
 }
 

@@ -16,8 +16,8 @@ $req->checkMethod('GET', "You must use HTTP GET for retrieving POIs!");
 $params = $req->parseParams($_GET);
 
 $components = isset($params['component']) ? $params['component'] : $dp->getSupportedComponents();
-$max_results = isset($params['max_results']) ? $params['max_results'] : $dp->config('max_results');
-$radius = isset($params['radius']) ? $params['radius'] : $dp->config('default_radius');
+$max_results = isset($params['max_results']) ? $params['max_results'] : $dp->config('query_defaults.max_results');
+$radius = isset($params['radius']) ? $params['radius'] : $dp->config('query_defaults.radius');
 
 $lon = $params['lon'];
 $lat = $params['lat'];

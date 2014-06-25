@@ -1,15 +1,9 @@
 <?php
 
-class SpatialIndex
+abstract class SpatialIndex
 {
-	// TODO: query methods should return an iterator and not limiting the result set!
-	public function bbox_search($west, $east, $south, $north) {
-		return array();
-	}
-	
-	public function radial_search($lat, $lon, $radius, $distance_ordered) {
-		return array();
-	}
+	abstract public function bbox_search($west, $east, $south, $north);
+	abstract public function radial_search($lat, $lon, $radius, $distance_ordered);
 	
 	public function set($poi_uuid, &$poi_data) {
 	}

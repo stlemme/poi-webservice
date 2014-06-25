@@ -14,17 +14,9 @@ class POIDataProvider
 	private $components = array();
 	private $schemaPath;
 	private $validator;
+	private $config;
 	
-	private $config = array(
-		'db_name' => 'poi_db4',
-		'schema_baseurl' => 'http://example.com/poi-v1/',
-		
-		'max_results' => 10000,
-		
-		'spatial_index' => 'mongo-geospatial',
-		
-		'default_radius' => 300
-	);
+	private $configFile = 'config.json';
 	
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -66,12 +58,19 @@ class POIDataProvider
 		}
 	}
 	
+	private function loadConfig($configFile)
+	{
+		$config_content = file_get_contents($configFile);
+		$this->config = Utils::json_decode($config_content);
+		if ($this->config == null)
+			Response::fail(500, "Invalid configuration file.");
+	}
+	
 	private function loadSpatialIndex()
 	{
-		if (!isset($this->config['spatial_index']))
+		$idxType = $this->config('spatial_index');
+		if ($idxType == null)
 			return;
-			
-		$idxType = $this->config['spatial_index'];
 		
 		include(realpath(__DIR__ . '/spatial/' . $idxType . '.php'));
 		
@@ -93,13 +92,14 @@ class POIDataProvider
 			
 			'category' => array(
 				'type' => 'string',
-				'array' => true
+				'array' => true,
+				'filter' => 'CategoryFilter'
 			),
 			
 			'max_results' => array(
 				'type' => 'int',
 				'min' => 1,
-				'max' => $this->config['max_results']
+				'max' => $this->config('query_defaults.max_results')
 			),
 			
 			'jsoncallback' => array(
@@ -161,9 +161,11 @@ class POIDataProvider
 	
 	private function __construct()
 	{
-		$this->connectMongoDB($this->config["db_name"]);
+		$this->loadConfig(realpath(__DIR__ . '/../' . $this->configFile));
+		
+		$this->connectMongoDB($this->config('db.name'));
 
-		$this->schemaPath = realpath(__DIR__ . "/../schema");
+		$this->schemaPath = realpath(__DIR__ . '/../' . $this->config('schema.path'));
 		$this->loadComponents();
 		
 		$this->loadSpatialIndex();
@@ -171,7 +173,7 @@ class POIDataProvider
 		$this->validator = new Validator(
 			$this->schemaPath,
 			$this->components,
-			$this->config["schema_baseurl"]
+			$this->config('schema.baseurl')
 		);
 	}
 	
@@ -235,6 +237,8 @@ class POIDataProvider
 		}
 		return $data;
 	}
+	
+	public function query($selector, $
 	
 	public function update($uuid, $poi_data)
 	{
@@ -348,10 +352,7 @@ class POIDataProvider
 	}
 	
 	public function config($key) {
-		if (!isset($this->config[$key]))
-			return;
-			
-		return $this->config[$key];
+		return Utils::jsonPath($this->config, $key);
 	}
 	
 	public function getSpatialIndex() {

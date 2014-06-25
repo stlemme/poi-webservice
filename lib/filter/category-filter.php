@@ -1,28 +1,22 @@
 <?php
 
-require_once(__DIR__ . '/../filter.php');
+require_once(__DIR__ . '/attribute-filter.php');
 
 
-class CategoryFilter
+class CategoryFilter extends AttributeFilter
 {
-	private $category;
-	
 	public function __construct($category) {
+		parent::__construct('fw_core.category');
 		$this->category = $category;
 	}
 	
-	public function requiredComponents() {
-		return array('fw_core');
-	}
-	
 	public function match($poi_data) {
-		if (!isset($poi_data['fw_core']))
-			return false;
-			
-		if (!isset($poi_data['fw_core']['category']))
+		$val = $this->value($poi_data);
+		
+		if ($val == null)
 			return false;
 		
-		return in_array($poi_data['fw_core']['category'], $this->category, true);
+		return in_array($val, $this->category, true);
 	}
 }
 
