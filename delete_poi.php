@@ -1,13 +1,19 @@
 <?php
 
 require_once(__DIR__ . '/lib/poi-data-provider.php');
+require_once(__DIR__ . '/lib/request.php');
 // require_once(__DIR__ . '/lib/response.php');
 
 
-$dp = POIDataProvider::getInstance();
-$req = $dp->request(
-	array('poi_id')
-);
+$dp = new POIDataProvider();
+$req = new Request(array(
+	'required' => array(
+		'poi_id' => array(
+			'type' => 'uuid',
+			'array' => true
+		)
+	)
+));
 
 $req->checkMethod('DELETE', "You must use HTTP DELETE for deleting POIs!");
 

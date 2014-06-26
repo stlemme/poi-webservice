@@ -6,15 +6,10 @@ require_once(__DIR__ . '/utils.php');
 
 class Request
 {
-	private $params;
 	private $required;
 	private $optional;
 	
 	public function __construct($requirements = null) {
-		if ($requirements == null)
-			$this->params = null;
-		
-		$this->params   = isset($requirements['params'])   ? $requirements['params']   : null;
 		$this->required = isset($requirements['required']) ? $requirements['required'] : array();
 		$this->optional = isset($requirements['optional']) ? $requirements['optional'] : array();
 	}
@@ -67,28 +62,21 @@ class Request
 	{
 		$params = array();
 		
-		if ($this->params == null)
-			return $params;
-		
-		foreach ($this->required as $pname)
+		foreach ($this->required as $pname => $pprop)
 		{
 			if (!isset($vars[$pname]))
 				Response::fail(400, "'$pname' parameter must be specified!");
 			
-			$pprop = $this->params[$pname];
 			$pval = $vars[$pname];
-			
 			$params[$pname] = $this->handleParam($pname, $pprop, $pval);
 		}
 
-		foreach ($this->optional as $pname)
+		foreach ($this->optional as $pname => $pprop)
 		{
 			if (!isset($vars[$pname]))
 				continue;
 			
-			$pprop = $this->params[$pname];
 			$pval = $vars[$pname];
-			
 			$params[$pname] = $this->handleParam($pname, $pprop, $pval);
 		}
 		

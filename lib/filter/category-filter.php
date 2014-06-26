@@ -5,9 +5,28 @@ require_once(__DIR__ . '/attribute-filter.php');
 
 class CategoryFilter extends AttributeFilter
 {
-	public function __construct($category) {
+	private $filterParameterName = 'category';
+	private $category = null;
+	
+	public function __construct() {
 		parent::__construct('fw_core.category');
-		$this->category = $category;
+	}
+	
+	public function parameters() {
+		return array(
+			$this->filterParameterName => array(
+				'type' => 'string',
+				'array' => true
+			)
+		);
+	}
+	
+	public function active($params) {
+		if (!isset($params[$this->filterParameterName]))
+			return false;
+			
+		$this->category = $params[$this->filterParameterName];
+		return true;
 	}
 	
 	public function match($poi_data) {

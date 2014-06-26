@@ -2,20 +2,22 @@
 
 require_once(__DIR__ . '/../spatial-index.php');
 require_once(__DIR__ . '/spatial-mongo-result-iterator.php');
+// require_once(__DIR__ . '/spatial-distance-mongo-result-iterator.php');
 
 
 class MongoNaive extends SpatialIndex
 {
 	private $core_comp = 'fw_core';
+	private $mongodb;
 	
 	public function __construct($mongodb) {
 		$this->mongodb = $mongodb;
-		$this->core = $this->mongodb->selectCollection($this->core_comp);
+		// $this->core = $this->mongodb->selectCollection($this->core_comp);
 	}
 	
 	public function bbox_search($west, $east, $south, $north) {
 		$spatialresult = $this->query_bbox($west, $east, $south, $north);
-		return new SpatialMongoResultIterator($spatialresult);
+		return new SpatialMongoResultIterator($this->core_comp, $spatialresult);
 	}
 
 	public function radial_search($lat, $lon, $radius, $distance_ordered) {
@@ -24,6 +26,7 @@ class MongoNaive extends SpatialIndex
 		$spatialresult = $this->query_bbox($lon-$d, $lon+$d, $lat-$d, $lat+$d);
 		
 		// skip POIs with a distance larger than radius
+		// TODO: realize with iterator
 		foreach ($spatialresult as $core_poi_uuid => $fw_core_comp) {
 			$coord = $fw_core_comp['location']['wgs84'];
 			$dist = $this->getDistance($lat, $lon, $coord['latitude'], $coord['longitude']);
@@ -31,13 +34,14 @@ class MongoNaive extends SpatialIndex
 			if ($dist > $radius)
 				continue;
 				
-			$result[$core_poi_uuid] = $dist;
+			unset($fw_core_comp['_id']);
+			$result[$core_poi_uuid] = array($this->core_comp => $fw_core_comp);
 		}
 
-		if ($distance_ordered)
-			asort($result);
+		//if ($distance_ordered)
+		//	asort($result);
 		
-		return array_keys($result);
+		return $result; // array_keys($result);
 	}
 	
 	protected function query_bbox($west, $east, $south, $north) {
@@ -45,7 +49,7 @@ class MongoNaive extends SpatialIndex
 			'location.wgs84.longitude' => array('$gt' => $west, '$lt' => $east),
 			'location.wgs84.latitude' => array('$gt' => $south, '$lt' => $north)
 		);
-		$spatialresult = $this->core->find($bbox_query, array("_id" => 1, 'location.wgs84.longitude' => 1, 'location.wgs84.latitude' => 1));
+		$spatialresult = $this->mongodb->manualQuery($this->core_comp, $bbox_query); // , 'location.wgs84.longitude' => 1, 'location.wgs84.latitude' => 1));
 		return $spatialresult;
 	}
 	

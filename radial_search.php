@@ -2,51 +2,24 @@
 
 require_once(__DIR__ . '/lib/poi-data-provider.php');
 require_once(__DIR__ . '/lib/response.php');
+require_once(__DIR__ . '/lib/selector/radial-selector.php');
 
 
-$dp = POIDataProvider::getInstance();
-
-$req = $dp->request(
-	array('lat', 'lon'),
-	array('component', 'jsoncallback', 'max_results', 'radius') // begin_time, end_time
-);
-
-$req->checkMethod('GET', "You must use HTTP GET for retrieving POIs!");
-
-$params = $req->parseParams($_GET);
-
-$components = isset($params['component']) ? $params['component'] : $dp->getSupportedComponents();
-$max_results = isset($params['max_results']) ? $params['max_results'] : $dp->config('query_defaults.max_results');
-$radius = isset($params['radius']) ? $params['radius'] : $dp->config('query_defaults.radius');
-
-$lon = $params['lon'];
-$lat = $params['lat'];
-
+$dp = new POIDataProvider();
 
 $spatialIndex = $dp->getSpatialIndex();
+$sel = new RadialSelector($spatialIndex);
 
-if ($spatialIndex == null)
-	Response::fail(400, "Spatial queries are not supported.");
+$data = $dp->query($sel, $_GET);
 
+// TODO: stream line processing using iterators and incremental json output
+// TODO: support jsonp
+Response::json(array("pois" => $data));
 
-$spatialResult = $spatialIndex->radial_search($lat, $lon, $radius, false);
-
-$pois = array();
-$results = 0;
-
-foreach($spatialResult as $uuid) {
-	if ($results >= $max_results)
-		break;
-	
-	// TODO: apply filter to reduce amount of results
-	$pois[$uuid] = $dp->read($uuid, $components);
-	$results++;
-}
-
-if (isset($params['jsoncallback'])) {
-	Response::jsonp($params['jsoncallback'], array('pois' => $pois));
-} else {
-	Response::json(array('pois' => $pois));
-}
+// if (isset($params['jsoncallback'])) {
+	// Response::jsonp($params['jsoncallback'], array('pois' => $pois));
+// } else {
+	// Response::json(array('pois' => $pois));
+// }
 
 ?>

@@ -8,15 +8,14 @@ require_once(__DIR__ . '/csv-importer.php');
 set_time_limit(300);
 
 
-$dp = POIDataProvider::getInstance();
+$dp = new POIDataProvider();
 
 $req = new Request(array(
-	'params' => array(
+	'required' => array(
 		'import_file' => array(
 			'type' => 'uri'
 		)
-	),
-	'required' => array('import_file')
+	)
 ));
 
 $params = $req->parseParams($_GET);

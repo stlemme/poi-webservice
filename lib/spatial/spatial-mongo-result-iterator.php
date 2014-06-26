@@ -3,10 +3,11 @@
 class SpatialMongoResultIterator implements Iterator
 {
 	private $mongoIterator = null;
-	private $i = 0;
+	private $core_comp;
 	
-	public function __construct($mongoResult) {
+	public function __construct($core_comp, $mongoResult) {
 		$this->mongoIterator = $mongoResult;
+		$this->core_comp = $core_comp;
 	}
 	
 	public function rewind() {
@@ -15,23 +16,23 @@ class SpatialMongoResultIterator implements Iterator
 		
 		try {
 			$this->mongoIterator->rewind();
-			$this->i = 0;
 		} catch (MongoCursorException $e) {
 			$this->mongoIterator = null;
 		}
 	}
 	
 	public function current() {
-		return $this->mongoIterator->key();
+		$current = $this->mongoIterator->current();
+		unset($current['_id']);
+		return array($this->core_comp => $current);
 	}
 	
 	public function key() {
-		return $this->i;
+		return $this->mongoIterator->key();
 	}
 	
 	public function next() {
 		$this->mongoIterator->next();
-		$this->i++;
 	}
 	
 	public function valid() {
@@ -40,6 +41,5 @@ class SpatialMongoResultIterator implements Iterator
 		return $this->mongoIterator->valid();
 	}
 }
-
 
 ?>

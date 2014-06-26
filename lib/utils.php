@@ -78,6 +78,14 @@ class Utils
 		}
 		return $current;
 	}
+	
+	public static function className($filename)
+	{
+		$filename = basename($filename, '.php');
+		$s = str_replace('-', ' ', $filename);
+		$t = ucwords($s);
+		return str_replace(' ', '', $t);
+	}
 }
 
 ?>

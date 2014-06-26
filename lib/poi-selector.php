@@ -1,21 +1,14 @@
 <?php
 
-
-abstract class POISelector implements Iterator
+abstract class POISelector
 {
-	abstract public function rewind();
-	abstract public function current();
-	abstract public function key();
-	abstract public function next();
-	abstract public function valid();
+	abstract public function parameters();
+	public function optional() {
+		return array();
+	}
 	
-	abstract public function parameters()
+	abstract public function setup($params, $defaults);
+	abstract public function result();
 }
-
-
-class SpatialSelector extends POISelector
-{
-}
-
 
 ?>

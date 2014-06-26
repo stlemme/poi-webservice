@@ -1,5 +1,6 @@
 {
 	"db": {
+		"adapter": "mongodb",
 		"name": "poi_db4"
 	},
 	
@@ -14,7 +15,12 @@
 		"max_results": 10000,
 		"radius": 300
 	},
-		
+	
+	"filters": {
+		"category-filter": true,
+		"has-xml3d-filter": false
+	},
+	
 	"remote": {
 		"url": "",
 		"components": {

@@ -5,6 +5,7 @@ require_once(__DIR__ . '/response.php');
 require_once(__DIR__ . '/utils.php');
 require_once(__DIR__ . '/validator.php');
 require_once(__DIR__ . '/spatial-index.php');
+require_once(__DIR__ . '/database.php');
 
 
 class POIDataProvider
@@ -12,44 +13,18 @@ class POIDataProvider
 	private $db = null;
 	private $spatialIndex = null;
 	private $components = array();
+	private $filters = array();
+	private $filterParams = array();
+	private $config;
+	
 	private $schemaPath;
 	private $validator;
-	private $config;
 	
 	private $configFile = 'config.json';
 	
 	
 	///////////////////////////////////////////////////////////////////////////
 	
-	
-	private function connectMongoDB($db_name)
-	{
-		ini_set("mongo.allow_empty_keys", 1);
-		
-		try {
-			$this->mongo = new MongoClient();
-			$this->db = $this->mongo->selectDB($db_name);
-		} catch (MongoConnectionException $e) {
-			Response::fail(500, "Error connecting to MongoDB server");
-		}
-	}
-
-	private function getComponent($component_name, $uuid)
-	{
-		try {
-			$collection = $this->db->selectCollection($component_name);
-			$component = $collection->findOne(array("_id" => $uuid), array("_id" => false));
-			return $component;
-		} catch (MongoConnectionException $e) {
-			// Response::fail(500, "Error querying MongoDB server");
-			return null;
-		}
-	}
-	
-	private function storeComponent($comp_name, $comp_data, $uuid)
-	{
-		// TODO: implement
-	}
 
 	private function loadComponents()
 	{
@@ -72,28 +47,37 @@ class POIDataProvider
 		if ($idxType == null)
 			return;
 		
-		include(realpath(__DIR__ . '/spatial/' . $idxType . '.php'));
+		include_once(realpath(__DIR__ . '/spatial/' . $idxType . '.php'));
 		
 		$this->spatialIndex = SpatialIndex::create($idxType, $this->db);
 	}
 
-	private function getCommonParams() {
-		return array(
-			'poi_id' => array(
-				'type' => 'uuid',
-				'array' => true
-			),
+	private function loadFilters()
+	{
+		$this->filters = array();
+		$this->filterParams = array();
+
+		foreach ($this->config('filters') as $fname => $factive) {
+			if (!$factive)
+				continue;
 			
+			$filename = realpath(__DIR__ . '/filter') . '/' . $fname . '.php';
+			if (!file_exists($filename))
+				continue;
+			
+			include_once($filename);
+
+			$className = Utils::className($filename);
+			$this->addFilter(new $className());
+		}
+	}
+
+	private function commonParameters() {
+		return array(
 			'component' => array(
 				'type' => 'enum',
 				'array' => true,
 				'values' => $this->getSupportedComponents()
-			),
-			
-			'category' => array(
-				'type' => 'string',
-				'array' => true,
-				'filter' => 'CategoryFilter'
 			),
 			
 			'max_results' => array(
@@ -104,71 +88,32 @@ class POIDataProvider
 			
 			'jsoncallback' => array(
 				'type' => 'string'
-			),
-			
-			// bbox_search
-			'north' => array(
-				'type' => 'float',
-				'min' => -90.0,
-				'max' => 90.0
-			),
-
-			'south' => array(
-				'type' => 'float',
-				'min' => -90.0,
-				'max' => 90.0
-			),
-			
-			'west' => array(
-				'type' => 'float',
-				'min' => -180.0,
-				'max' => 180.0
-			),
-			
-			'east' => array(
-				'type' => 'float',
-				'min' => -180.0,
-				'max' => 180.0
-			),
-
-			// radial_search
-			'lat' => array(
-				'type' => 'float',
-				'min' => -90.0,
-				'max' => 90.0
-			),
-
-			'lon' => array(
-				'type' => 'float',
-				'min' => -180.0,
-				'max' => 180.0
-			),
-			
-			'radius' => array(
-				'type' => 'float',
-				'min' => 0.0
-			),
-			
-			
-			'begin_time' => array(),
-			'end_time' => array()
+			)
 		);
+	}
+	
+	private function filterParameters() {
+		return $this->filterParams;
 	}
 
 	
 	///////////////////////////////////////////////////////////////////////////
 
 	
-	private function __construct()
+	public function __construct()
 	{
 		$this->loadConfig(realpath(__DIR__ . '/../' . $this->configFile));
 		
-		$this->connectMongoDB($this->config('db.name'));
+		// TODO: use database factory
+		$this->db = new MongoDatabase();
+		$this->db->connect($this->config('db'));
 
 		$this->schemaPath = realpath(__DIR__ . '/../' . $this->config('schema.path'));
 		$this->loadComponents();
 		
 		$this->loadSpatialIndex();
+		
+		$this->loadFilters();
 
 		$this->validator = new Validator(
 			$this->schemaPath,
@@ -222,23 +167,60 @@ class POIDataProvider
 		return $new_poi_info;
 	}
 	
-	public function read($uuid, $components)
+	public function query($selector, $queryParams)
 	{
-		$data = array();
+		$req = new Request(array(
+			'required' => $selector->parameters(),
+			'optional' => array_merge($this->filterParameters(), $selector->optional(), $this->commonParameters())
+		));
+
+		$req->checkMethod('GET', "You must use HTTP GET for retrieving POIs!");
+
+		$params = $req->parseParams($queryParams);
+		$components = isset($params['component']) ? $params['component'] : $this->getSupportedComponents();
+		$max_results = isset($params['max_results']) ? $params['max_results'] : $this->config('query_defaults.max_results');
+		// TODO: handle jsoncallback parameter
+
+		$selector->setup($params, $this->config('query_defaults'));
 		
-		// TODO: check if one query per component is faster
-		foreach ($components as $component)
+		$filters = array();
+		
+		foreach($this->filters as $f)
 		{
-			$comp_data = $this->getComponent($component, $uuid);
-			if ($comp_data == null)
+			if ($f->active($params))
+				$filters[] = $f;
+		}
+
+		$pois = array();
+		$results = 0;
+		
+		$result = $selector->result();
+		// print_r(iterator_to_array($result));
+
+		foreach($result as $poi_uuid => $poi_data)
+		{
+			if ($results >= $max_results)
+				break;
+					
+			foreach($filters as $f)
+			{
+				if (!$this->applyFilter($poi_uuid, $poi_data, $f)) {
+					$poi_uuid = null;
+					break;
+				}
+			}
+			
+			if ($poi_uuid == null)
 				continue;
 
-			$data[$component] = $comp_data;
+			$this->complete($poi_uuid, $poi_data, $components);
+			$pois[$poi_uuid] = $poi_data;
+			
+			$results++;
 		}
-		return $data;
+		
+		return $pois;
 	}
-	
-	public function query($selector, $
 	
 	public function update($uuid, $poi_data)
 	{
@@ -326,10 +308,7 @@ class POIDataProvider
 	public function delete($uuids)
 	{
 		foreach($this->components as $component)
-		{
-			$collection = $this->db->selectCollection($component);
-			$collection->remove(array('_id' => array('$in' => $uuids)));
-		}
+			$this->db->removeComponent($component, $uuids);
 		
 		if ($this->spatialIndex != null) {
 			$this->spatialIndex->remove($uuids);
@@ -343,14 +322,6 @@ class POIDataProvider
 		return $this->components;
 	}
 
-	public function request($req_params = array(), $opt_params = array()) {
-		return new Request(array(
-			'params' => $this->getCommonParams(),
-			'required' => $req_params,
-			'optional' => $opt_params
-		));
-	}
-	
 	public function config($key) {
 		return Utils::jsonPath($this->config, $key);
 	}
@@ -359,13 +330,20 @@ class POIDataProvider
 		return $this->spatialIndex;
 	}
 	
-	public function applyFilter($poi_uuid, &$poi_data, $filter)
+	public function addFilter($filter)
 	{
-		foreach ($filter->requiredComponents() as $comp_name) {
+		$this->filters[] = $filter;
+		$this->filterParams = array_merge($this->filterParams, $filter->parameters());
+	}
+	
+	private function applyFilter($poi_uuid, &$poi_data, $filter)
+	{
+		foreach ($filter->requiredComponents() as $comp_name)
+		{
 			if (isset($poi_data[$comp_name]))
 				continue;
 			
-			$comp_data = $this->getComponent($comp_name, $poi_uuid);
+			$comp_data = $this->db->getComponent($poi_uuid, $comp_name);
 			if ($comp_data == null)
 				return false;
 				
@@ -375,14 +353,14 @@ class POIDataProvider
 		return $filter->match($poi_data);
 	}
 	
-	public function complete($poi_uuid, &$poi_data, $components)
+	private function complete($poi_uuid, &$poi_data, $components)
 	{
 		foreach ($components as $comp_name)
 		{
 			if (isset($poi_data[$comp_name]))
 				continue;
 			
-			$comp_data = $this->getComponent($comp_name, $poi_uuid);
+			$comp_data = $this->db->getComponent($poi_uuid, $comp_name);
 			if ($comp_data == null)
 				continue;
 
@@ -392,14 +370,14 @@ class POIDataProvider
 	
 	///////////////////////////////////////////////////////////////////////////
 
-	private static $instance;
+	// private static $instance;
 	
-	public static function getInstance() {
-		if(!self::$instance) {
-			self::$instance = new self();
-		} 
-		return self::$instance; 
-	}
+	// public static function getInstance() {
+		// if(!self::$instance) {
+			// self::$instance = new self();
+		// } 
+		// return self::$instance; 
+	// }
 
 }
 
