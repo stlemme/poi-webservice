@@ -19,14 +19,29 @@ class Request
 			Response::fail(400, $message);
 	}
 
+	private function in_range($val, $prop)
+	{
+		if (isset($prop['min'])) {
+			if ($val < $prop['min'])
+				return null;
+		}
+		
+		if (isset($prop['max'])) {
+			if ($val > $prop['max'])
+				return null;
+		}
+		
+		return $val;
+	}
+	
 	private function convertParam($value, $target, $prop)
 	{
 		switch ($target) {
-			case "string": return $value;
+			case "string": return isset($prop['pattern']) ? Utils::validate_pattern($value, $prop['pattern']) : $value;
 			case "uuid":   return Utils::validate_guidv4($value);
 			case "uri":    return Utils::validate_uri($value);
-			case "float":  return is_numeric($value) ? floatval($value) : null;
-			case "int":    return is_numeric($value) ? intval($value) : null;
+			case "float":  return is_numeric($value) ? $this->in_range(floatval($value), $prop) : null;
+			case "int":    return is_numeric($value) ? $this->in_range(intval($value), $prop) : null;
 			case "enum":   return in_array($value, $prop['values']) ? $value : null;
 			default:       return null;
 		}
@@ -53,7 +68,7 @@ class Request
 		}
 		
 		if ($pval == null)
-			Response::fail(400, "'$pname' parameter must be of type '$ptype'!");
+			Response::fail(400, "'$pname' parameter must be of '" . Utils::json_encode($pprop) . "'!");
 				
 		return $pval;
 	}

@@ -1,5 +1,8 @@
 <?php
 
+require_once(__DIR__ . '/utils.php');
+
+
 class Response
 {
 	private static $status = array(
@@ -19,13 +22,13 @@ class Response
 	{
 		header("Content-type: application/json");
 		header("Access-Control-Allow-Origin: *");
-		echo json_encode($data);
+		echo Utils::json_encode($data);
 	}
 	
 	public static function jsonp($jsoncb, $data)
 	{
 		header("Content-Type: application/javascript; charset=utf-8");
-		echo $jsoncb . "(" . json_encode($data) . ")";
+		echo $jsoncb . "(" . Utils::json_encode($data) . ")";
 	}
 }
 

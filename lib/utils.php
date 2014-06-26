@@ -28,9 +28,22 @@ class Utils
 	public static function validate_uri($uri)
 	{
 		if (preg_match(self::$uri_pattern, $uri) == 1)
-				return $uri;
+			return $uri;
 
 		return null;
+	}
+	
+	public static function validate_pattern($value, $pattern)
+	{
+		if (preg_match($pattern, $value) == 1)
+			return $value;
+
+		return null;
+	}
+
+	public static function json_encode($data)
+	{
+		return json_encode($data);
 	}
 	
 	public static function json_decode($json, $assoc_array = true, $debug = false)
