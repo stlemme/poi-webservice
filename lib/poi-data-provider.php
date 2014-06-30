@@ -21,7 +21,7 @@ class POIDataProvider
 	private $schemaPath;
 	private $validator;
 	
-	private $configFile = 'config.json';
+	const ConfigFile = 'config.json';
 	
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ class POIDataProvider
 	{
 		$config_content = file_get_contents($configFile);
 		$this->config = Utils::json_decode($config_content);
-		if ($this->config == null)
+		if ($this->config === null)
 			Response::fail(500, "Invalid configuration file.");
 	}
 	
@@ -104,7 +104,7 @@ class POIDataProvider
 	
 	public function __construct()
 	{
-		$this->loadConfig(realpath(__DIR__ . '/../' . $this->configFile));
+		$this->loadConfig(self::configFile());
 		
 		// TODO: use database factory
 		$this->db = new MongoDatabase();
@@ -321,6 +321,14 @@ class POIDataProvider
 	
 	///////////////////////////////////////////////////////////////////////////
 
+	public static function configFile() {
+		$file = __DIR__ . '/../' . self::ConfigFile;
+		$filePath = realpath($file);
+		if ($filePath !== false)
+			return $filePath;
+		return $file;
+	}
+	
 	public function getSupportedComponents() {
 		return $this->components;
 	}

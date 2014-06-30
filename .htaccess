@@ -5,29 +5,6 @@ DirectorySlash On
 
 RewriteBase /api/poi
 
-#RewriteCond %{REQUEST_FILENAME}  -d
-#RewriteRule (.*)  $1/  [NC,QSA]
-
-# CREATE
-#RewriteCond %{REQUEST_FILENAME}  !-f
-#RewriteCond %{REQUEST_METHOD}  POST
-#RewriteRule ^$  create  [NC,QSA]
-
-# READ
-#RewriteCond %{REQUEST_FILENAME}  !-f
-#RewriteCond %{REQUEST_METHOD}  GET
-#RewriteRule ^$  query  [NC,QSA]
-
-# UPDATE
-#RewriteCond %{REQUEST_FILENAME}  !-f
-#RewriteCond %{REQUEST_METHOD}  PUT
-#RewriteRule ^$  update  [NC,QSA]
-
-# DELETE
-#RewriteCond %{REQUEST_FILENAME}  !-f
-#RewriteCond %{REQUEST_METHOD}  DELETE
-#RewriteRule ^$  delete  [NC,QSA]
-
 
 RewriteCond %{REQUEST_FILENAME}.php  -f
 RewriteRule ^(.*)$  $1.php  [QSA]
@@ -35,7 +12,7 @@ RewriteRule ^(.*)$  $1.php  [QSA]
 # 
 RewriteRule ^\.git/.*$  -  [F]
 
-<FilesMatch "(\.git.*|config.*)$">
+<FilesMatch "^(\.git.*|config\.json.*)$">
 	Order allow,deny
 	Deny from all
 </FilesMatch>

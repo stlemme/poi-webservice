@@ -1,0 +1,26 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "custom_mydata",
+	"description": "This is a custom data component",
+	"type": "object",
+	"properties": {
+		"prop1": {
+			"description": "Property 1 is a usual string",
+			"type": "string"
+		},
+		"prop2": {
+			"description": "Property 2 is a float",
+			"type": "float"
+		},
+		"prop3": {
+			"description": "Property 3 is an internationalized uri predefined as util type",
+			"$ref": "uri.json#/intl_uri"
+		},
+		"last_update": {
+			"title": "Last update",
+			"description": "DO NOT EDIT! Information to identify the version of the data component.",
+			"$ref": "update_stamp.json"
+		}
+	},
+	"additionalProperties": false
+}

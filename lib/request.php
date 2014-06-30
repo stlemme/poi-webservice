@@ -14,8 +14,12 @@ class Request
 		$this->optional = isset($requirements['optional']) ? $requirements['optional'] : array();
 	}
 	
+	public function method() {
+		return $_SERVER['REQUEST_METHOD'];
+	}
+	
 	public function checkMethod($method, $message) {
-		if ($_SERVER['REQUEST_METHOD'] != $method)
+		if ($this->method() != $method)
 			Response::fail(400, $message);
 	}
 

@@ -11,28 +11,23 @@ class Utils
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}
 	
-	private static $guidv4_pattern = "/([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{12})/";
+	
+	const PATTERN_GUIDv4    = "/^([a-f0-9]{8})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{4})-([a-f0-9]{12})$/";
+	const PATTERN_URI       = "/([a-z][a-z0-9\+\-]*):\/\/(.+)/";
+	const PATTERN_COMP_NAME = "/^([a-z]{2,})\_([a-z0-9]+)$/";
 
-	public static function validate_guidv4($id)
-	{
-		$id = strtolower($id);
-		
-		if (preg_match(self::$guidv4_pattern, $id) == 1)
-			return $id;
-		
-		return null;
+	public static function validate_guidv4($id) {
+		return self::validate_pattern(strtolower($id), self::PATTERN_GUIDv4);
 	}
 
-	private static $uri_pattern = "/([a-z][a-z0-9\+\-]*):\/\/(.+)/";
-
-	public static function validate_uri($uri)
-	{
-		if (preg_match(self::$uri_pattern, $uri) == 1)
-			return $uri;
-
-		return null;
+	public static function validate_uri($uri) {
+		return self::validate_pattern($uri, self::PATTERN_URI);
 	}
 	
+	public static function validate_comp_name($comp_name) {
+		return self::validate_pattern($comp_name, self::PATTERN_COMP_NAME);
+	}
+
 	public static function validate_pattern($value, $pattern)
 	{
 		if (preg_match($pattern, $value) == 1)
@@ -40,7 +35,8 @@ class Utils
 
 		return null;
 	}
-
+	
+	
 	public static function json_encode($data)
 	{
 		return json_encode($data);
