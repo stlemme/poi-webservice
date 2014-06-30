@@ -1,7 +1,10 @@
 {
 	"db": {
 		"adapter": "mongodb",
-		"name": "poi_db4"
+		"name": "poi_db4",
+		"host": "localhost",
+		"user": null,
+		"password": null
 	},
 	
 	"schema": {

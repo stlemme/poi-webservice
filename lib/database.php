@@ -23,7 +23,7 @@ class MongoDatabase implements Database
 		
 		try {
 			$this->mongo = new MongoClient();
-			$this->db = $this->mongo->selectDB(Utils::jsonPath($db_config, 'name'));
+			$this->db = $this->mongo->selectDB(Utils::json_path($db_config, 'name'));
 		} catch (MongoConnectionException $e) {
 			Response::fail(500, "Error connecting to MongoDB server");
 		}

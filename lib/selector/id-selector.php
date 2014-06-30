@@ -51,7 +51,7 @@ class IdSelector extends POISelector
 		);
 	}
 	
-	public function setup($params, $defaults) {
+	public function setup($params, $config) {
 		if (!isset($params['poi_id']))
 			return;
 		$this->result = new IdSelectorResultIterator($params['poi_id']);

@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__ . '/spatial-selector.php');
+require_once(__DIR__ . '/utils.php');
 
 
 class RadialSelector extends SpatialSelector
@@ -34,9 +35,10 @@ class RadialSelector extends SpatialSelector
 		);
 	}
 
-	public function setup($params, $defaults)
+	public function setup($params, $config)
 	{
-		$radius = isset($params['radius']) ? $params['radius'] : $defaults['radius'];
+		$defaultRadius = Utils::json_path($config, 'query_defaults.radius');
+		$radius = isset($params['radius']) ? $params['radius'] : $defaultRadius;
 
 		$lon = $params['lon'];
 		$lat = $params['lat'];

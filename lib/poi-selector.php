@@ -7,7 +7,7 @@ abstract class POISelector
 		return array();
 	}
 	
-	abstract public function setup($params, $defaults);
+	abstract public function setup($params, $config);
 	abstract public function result();
 }
 

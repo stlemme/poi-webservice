@@ -1,12 +1,24 @@
 <?php
 
-interface Filter
+abstract class Filter
 {
-	public function parameters();
-	public function active($params);
+	abstract public function parameters();
+	abstract public function active($params);
 	
-	public function requiredComponents();
-	public function match($poi_data);
+	abstract public function requiredComponents();
+	abstract public function match($poi_data);
+
+	
+	///////////////////////////////////////////////////////////////////////////
+
+	
+	public static function create($filter) {
+		$filterClass = Utils::loadClassFromFile($filter, __DIR__ . '/filter');
+		if ($filterClass == null)
+			return null;
+		
+		return new $filterClass();
+	}
 }
 
 ?>

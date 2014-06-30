@@ -5,6 +5,7 @@ require_once(__DIR__ . '/response.php');
 require_once(__DIR__ . '/utils.php');
 require_once(__DIR__ . '/validator.php');
 require_once(__DIR__ . '/spatial-index.php');
+require_once(__DIR__ . '/filter.php');
 require_once(__DIR__ . '/database.php');
 
 
@@ -47,8 +48,6 @@ class POIDataProvider
 		if ($idxType == null)
 			return;
 		
-		include_once(realpath(__DIR__ . '/spatial/' . $idxType . '.php'));
-		
 		$this->spatialIndex = SpatialIndex::create($idxType, $this->db);
 	}
 
@@ -56,19 +55,22 @@ class POIDataProvider
 	{
 		$this->filters = array();
 		$this->filterParams = array();
+		
+		$filterConfig = $this->config('filters');
+		if ($filterConfig == null)
+			return;
 
-		foreach ($this->config('filters') as $fname => $factive) {
+		foreach ($filterConfig as $fname => $factive)
+		{
 			if (!$factive)
 				continue;
 			
-			$filename = realpath(__DIR__ . '/filter') . '/' . $fname . '.php';
-			if (!file_exists($filename))
+			$filter = Filter::create($fname);
+
+			if ($filter == null)
 				continue;
 			
-			include_once($filename);
-
-			$className = Utils::className($filename);
-			$this->addFilter(new $className());
+			$this->addFilter($filter);
 		}
 	}
 
@@ -229,7 +231,8 @@ class POIDataProvider
 			$old_comp_data = $this->read($uuid, $comp_name);
 			if ($old_comp_data == null)
 				continue;
-			$comp_data = array_replace_recursive($old_comp_data, $comp_data);
+			
+			$comp_data = Utils::json_update($old_comp_data, $comp_data);
 			// TODO: remove "deleted" (null) fields
 		}
 	
@@ -323,7 +326,7 @@ class POIDataProvider
 	}
 
 	public function config($key) {
-		return Utils::jsonPath($this->config, $key);
+		return Utils::json_path($this->config, $key);
 	}
 	
 	public function getSpatialIndex() {
@@ -344,9 +347,9 @@ class POIDataProvider
 				continue;
 			
 			$comp_data = $this->db->getComponent($poi_uuid, $comp_name);
-			if ($comp_data == null)
-				return false;
-				
+			if ($comp_data === null)
+				continue;
+			
 			$poi_data[$comp_name] = $comp_data;
 		}
 		

@@ -67,6 +67,4 @@ class MongoGeospatial extends SpatialIndex
 	
 }
 
-SpatialIndex::register('mongo-geospatial', 'MongoGeospatial');
-
 ?>

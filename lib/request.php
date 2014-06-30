@@ -43,6 +43,7 @@ class Request
 			case "float":  return is_numeric($value) ? $this->in_range(floatval($value), $prop) : null;
 			case "int":    return is_numeric($value) ? $this->in_range(intval($value), $prop) : null;
 			case "enum":   return in_array($value, $prop['values']) ? $value : null;
+			case "bool":   return in_array($value, array('true', 'false')) ? $value == 'true' : null;
 			default:       return null;
 		}
 	}
@@ -57,7 +58,7 @@ class Request
 			$pval = array();
 			foreach($pval_arr as $pval_arr_var) {
 				$val = $this->convertParam($pval_arr_var, $ptype, $pprop);
-				if ($val == null) {
+				if ($val === null) {
 					$pval = null;
 					break;
 				}
@@ -67,7 +68,7 @@ class Request
 			$pval = $this->convertParam($pvalue, $ptype, $pprop);
 		}
 		
-		if ($pval == null)
+		if ($pval === null)
 			Response::fail(400, "'$pname' parameter must be of '" . Utils::json_encode($pprop) . "'!");
 				
 		return $pval;
@@ -103,7 +104,7 @@ class Request
 		$data = isset($HTTP_RAW_POST_DATA) ? $HTTP_RAW_POST_DATA : file_get_contents('php://input');
 		$request_array = Utils::json_decode($data);
 
-		if ($request_array == NULL)
+		if ($request_array === null)
 			Response::fail(400, "Error decoding request payload as JSON!");
 			
 		return $request_array;

@@ -66,19 +66,7 @@ class Utils
 		return $data;
 	}
 	
-	public static function extractCoordinates($poi_data, &$lon, &$lat)
-	{
-		if (!isset($poi_data['fw_core']))
-			return false;
-			
-		$wgs84 = $poi_data['fw_core']['location']['wgs84'];
-		$lon = $wgs84['longitude'];
-		$lat = $wgs84['latitude'];
-		
-		return true;
-	}
-	
-	public static function jsonPath($poi_data, $path)
+	public static function json_path($poi_data, $path)
 	{
 		$current = $poi_data;
 		$path_parts = explode('.', $path);
@@ -92,12 +80,47 @@ class Utils
 		return $current;
 	}
 	
+	public static function json_update($data, $update)
+	{
+		$new_data = array_replace_recursive($data, $update);
+		// TODO: remove "deleted" (null) fields
+		return $new_data;
+	}
+
+	
+	public static function extractCoordinates($poi_data, &$lon, &$lat)
+	{
+		$wgs84 = self::json_path($poi_data, 'fw_core.location.wgs84');
+		if ($wgs84 == null)
+			return false;
+		
+		$lon = $wgs84['longitude'];
+		$lat = $wgs84['latitude'];
+		
+		return true;
+	}
+
+	
 	public static function className($filename)
 	{
 		$filename = basename($filename, '.php');
 		$s = str_replace('-', ' ', $filename);
 		$t = ucwords($s);
 		return str_replace(' ', '', $t);
+	}
+	
+	public static function loadClassFromFile($filename, $path = null)
+	{
+		if ($path == null)
+			$path = __DIR__;
+		
+		$filename = realpath($path . '/' . $filename . '.php');
+		if (!file_exists($filename))
+			return null;
+		
+		include_once($filename);
+
+		return Utils::className($filename);
 	}
 }
 

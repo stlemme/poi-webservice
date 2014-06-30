@@ -63,6 +63,4 @@ class MongoNaive extends SpatialIndex
 	
 }
 
-SpatialIndex::register('mongo-naive', 'MongoNaive');
-
 ?>

@@ -1,5 +1,8 @@
 <?php
 
+require_once(__DIR__ . '/utils.php');
+
+
 abstract class SpatialIndex
 {
 	abstract public function bbox_search($west, $east, $south, $north);
@@ -16,18 +19,12 @@ abstract class SpatialIndex
 
 	
 	public static function create($idx, $db) {
-		if (!isset(self::$types[$idx]))
+		$idxClass = Utils::loadClassFromFile($idx, __DIR__ . '/spatial');
+		if ($idxClass == null)
 			return;
 			
-		return new self::$types[$idx]($db);
+		return new $idxClass($db);
 	}
-	
-	public static function register($idx, $type) {
-		self::$types[$idx] = $type;
-	}
-	
-	private static $types = array();
 }
-
 
 ?>

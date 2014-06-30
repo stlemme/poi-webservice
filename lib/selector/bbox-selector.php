@@ -37,7 +37,7 @@ class BBoxSelector extends SpatialSelector
 		);
 	}
 
-	public function setup($params, $defaults)
+	public function setup($params, $config)
 	{
 		$north = $params['north'];
 		$south = $params['south'];
