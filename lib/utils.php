@@ -66,8 +66,11 @@ class Utils
 	{
 		$current = $poi_data;
 		$path_parts = explode('.', $path);
-		while(($elem = array_shift($path_parts)) != null)
+		while(($elem = array_shift($path_parts)) !== null)
 		{
+			if ($current === null)
+				return null;
+			
 			if (!array_key_exists($elem, $current))
 				return null;
 				

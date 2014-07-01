@@ -36,10 +36,14 @@ class POIDataProvider
 	
 	private function loadConfig($configFile)
 	{
-		$config_content = file_get_contents($configFile);
-		$this->config = Utils::json_decode($config_content);
-		if ($this->config === null)
-			Response::fail(500, "Invalid configuration file.");
+		if (file_exists($configFile)) {
+			$config_content = file_get_contents($configFile);
+			$this->config = Utils::json_decode($config_content);
+			if ($this->config === null)
+				Response::fail(500, "Invalid configuration file.");
+		} else {
+			$this->config = null;
+		}
 	}
 	
 	private function loadSpatialIndex()
@@ -108,7 +112,9 @@ class POIDataProvider
 		
 		// TODO: use database factory
 		$this->db = new MongoDatabase();
+		// TODO: how to handle errors at this stage
 		$this->db->connect($this->config('db'));
+			// Response::fail(500, "Error connecting to MongoDB server");
 
 		$this->schemaPath = realpath(__DIR__ . '/../' . $this->config('schema.path'));
 		$this->loadComponents();

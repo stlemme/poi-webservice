@@ -23,14 +23,22 @@ class MongoDatabase implements Database
 		
 		try {
 			$this->mongo = new MongoClient();
-			$this->db = $this->mongo->selectDB(Utils::json_path($db_config, 'name'));
+			$dbname = Utils::json_path($db_config, 'name');
+			if ($dbname === null)
+				return false;
+			$this->db = $this->mongo->selectDB($dbname);
+			return true;
 		} catch (MongoConnectionException $e) {
-			Response::fail(500, "Error connecting to MongoDB server");
+			$this->db = null;
+			return false;
 		}
 	}
 
 	public function getComponent($uuid, $comp_name)
 	{
+		if ($this->db === null)
+			return null;
+		
 		try {
 			$collection = $this->db->selectCollection($comp_name);
 			$comp_data = $collection->findOne(array("_id" => $uuid), array("_id" => false));
@@ -43,11 +51,16 @@ class MongoDatabase implements Database
 	
 	public function storeComponent($uuid, $comp_name, $comp_data)
 	{
+		if ($this->db === null)
+			return false;
 		// TODO: implement
 	}
 	
 	public function removeComponent($comp_name, $uuids)
 	{
+		if ($this->db === null)
+			return false;
+	
 		try {
 			$collection = $this->db->selectCollection($comp_name);
 			$collection->remove(array('_id' => array('$in' => $uuids)));
@@ -59,6 +72,9 @@ class MongoDatabase implements Database
 	
 	public function manualQuery($collection, $query, $projection = null)
 	{
+		if ($this->db === null)
+			return null;
+
 		try {
 			$c = $this->db->selectCollection($collection);
 			if ($projection == null) {
@@ -74,6 +90,9 @@ class MongoDatabase implements Database
 	
 	public function ensureIndex($collection, $index)
 	{
+		if ($this->db === null)
+			return false;
+		
 		try {
 			$c = $this->db->selectCollection($collection);
 			$c->ensureIndex($index);
