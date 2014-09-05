@@ -1,0 +1,24 @@
+
+RewriteEngine on
+
+DirectorySlash On
+
+RewriteBase /api/poi
+
+#RewriteCond %{REQUEST_FILENAME}  -d
+#RewriteRule (.*)  $1/  [NC,QSA]
+
+
+RewriteCond %{REQUEST_FILENAME}.php  -f
+RewriteCond %{REQUEST_METHOD}  =GET [OR]
+RewriteCond %{REQUEST_METHOD}  =POST
+RewriteRule ^(.*)$  $1.php
+
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin: "*"
+    Header set Access-Control-Allow-Headers: "X-Requested-With"
+    Header set Access-Control-Allow-Methods: "GET, POST"
+    Header set Allow: "GET, POST"
+</IfModule>
+
+
